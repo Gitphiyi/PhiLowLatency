@@ -4,6 +4,7 @@
 #include <vector>
 #include <chrono>
 #include <climits>
+#include <thread>
 
 using namespace std;
 using namespace std::chrono;
@@ -43,13 +44,14 @@ uint64_t dot(array<int, n>& a, array<int, n>& b) {
     return dot;
 }
 
-uint64_t simd_dot(array<int, n> a, array<int, n> b) {
+uint64_t simd_dot(array<int, n> a, array<int, n> b, int start_window, int end_window) {
     auto start = high_resolution_clock::now();
     int i = 0; 
     uint64_t result = 0;
     int32x4_t temp[n / 4];
     int ctr = 0;
-    for(i = 0; i+7 < n; i += 8) { //combining SIMD and loop unrolling
+    int stride = 8;
+    for(i = 0; i+stride-1 < n; i += stride) { //combining SIMD and loop unrolling
         int32x4_t a_reg = vld1q_s32(&a[i]);
         int32x4_t b_reg = vld1q_s32(&b[i]);
         int32x4_t prod = vmulq_s32(a_reg, b_reg);
@@ -90,6 +92,6 @@ int main() {
     }
     //print_vec(v1, v2);
     dot(a, b);
-    simd_dot(a, b);
+    simd_dot(a, b, 0, n);
     return 0;
 }
